@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萬能郵件管家 | Galaxy AI</title>
+    <title>萬能郵件管家 | Samsung Galaxy AI</title>
     <style>
         :root { --accent: #38bdf8; --bg: #000; --card: rgba(28, 28, 35, 0.95); --border: rgba(255, 255, 255, 0.15); }
         body { background: var(--bg); background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 85%); color: #fff; font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
@@ -17,7 +17,7 @@
         textarea { width: 100%; height: 130px; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.6; outline: none; resize: none; margin-bottom: 10px; }
         button { width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 50px; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
         #loader { display: none; text-align: center; margin: 20px 0; color: var(--accent); font-size: 14px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
         .result-card { background: var(--card); border: 1px solid var(--border); border-radius: 32px; padding: 28px; margin-bottom: 20px; animation: slideUp 0.6s ease forwards; position: relative; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         .label { font-size: 11px; color: var(--accent); font-weight: 800; margin-bottom: 8px; display: block; text-transform: uppercase; }
@@ -33,19 +33,19 @@
     </div>
 
     <div class="config-card" id="config-ui">
-        <input type="password" id="apiKeyInput" placeholder="在此輸入您的 Gemini API Key...">
+        <input type="password" id="apiKeyInput" placeholder="在此輸入您的新 API Key...">
         <button style="width:auto; padding:5px 15px; font-size:12px; background:var(--accent);" onclick="saveKey()">確認</button>
     </div>
 
     <div class="input-section">
-        <textarea id="emailInput" placeholder="在此貼入長篇郵件本文..."></textarea>
+        <textarea id="emailInput" placeholder="請在此貼入長篇郵件本文..."></textarea>
         <button onclick="askGemini()">
-            啟動智慧分析
+            啟動 Galaxy AI 分析
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
         </button>
     </div>
 
-    <div id="loader">✨ Galaxy AI 正在深度解讀語義...</div>
+    <div id="loader">✨ 正在透過 Gemini 1.5 解析語義...</div>
     <div id="display-list"></div>
 </div>
 
@@ -79,27 +79,35 @@
         const loader = document.getElementById('loader');
         loader.style.display = 'block';
 
-        // --- 關鍵修正處：使用 v1 版本與正確的模型路徑 ---
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${savedKey}`;
+        // --- 核心修正：使用 v1beta 並確保模型名稱正確 ---
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`;
 
-        const prompt = `你是一位專業的萬能郵件管家。請根據以下郵件內容，產出繁體中文分析：
-        1. [優先等級]: (緊急/普通)。
-        2. [深度摘要]: 以自然、親切的助手口吻，寫出約 100 字的摘要。
-        3. [關鍵時地]: 抓出時間與地點 (若無則跳過)。
-        4. [行動指南]: 建議下一步具體該做什麼。
-        郵件：${text}`;
+        const prompt = {
+            contents: [{
+                parts: [{
+                    text: `你是一位專業的萬能郵件管家。請根據以下郵件內容，產出繁體中文分析：
+                    1. [優先等級]: (緊急/普通)。
+                    2. [深度摘要]: 以助手口吻，寫出約 100 字的摘要。
+                    3. [關鍵時地]: 抓出明確的時間與地點 (若無則跳過)。
+                    4. [行動指南]: 建議下一步具體該做什麼。
+                    郵件內容：${text}`
+                }]
+            }]
+        };
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                body: JSON.stringify(prompt)
             });
 
             const data = await response.json();
             
-            // 如果 API 回報錯誤，直接顯示詳細訊息
-            if (data.error) throw new Error(data.error.message);
+            if (data.error) {
+                // 假如 1.5 Flash 還是不行，這裡會顯示原因
+                throw new Error(data.error.message);
+            }
 
             const aiResult = data.candidates[0].content.parts[0].text;
             
@@ -115,7 +123,7 @@
 
         } catch (error) {
             loader.style.display = 'none';
-            alert("分析失敗：\n" + error.message);
+            alert("分析失敗：\n" + error.message + "\n\n建議：請確認 API Key 是否已正確創建，且沒有區域限制。");
         }
     }
 </script>
