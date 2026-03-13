@@ -3,175 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samsung Galaxy AI | Universal Butler</title>
+    <title>Samsung Galaxy AI | Smart Butler Pro</title>
     <style>
         :root {
             --samsung-blue: #1428a0;
-            --accent-cyan: #38bdf8;
+            --accent-blue: #38bdf8;
             --bg: #000;
-            --card-bg: rgba(28, 28, 30, 0.7);
+            --card-bg: rgba(28, 28, 30, 0.85);
             --border: rgba(255, 255, 255, 0.1);
         }
 
         body {
             background: var(--bg);
-            background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 70%);
+            background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 75%);
             color: #fff;
             font-family: 'Inter', -apple-system, system-ui, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
+            margin: 0; padding: 24px; display: flex; justify-content: center; min-height: 100vh;
         }
 
-        .app-container { width: 100%; max-width: 500px; }
+        .app-container { width: 100%; max-width: 480px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+        .logo { font-weight: 800; font-size: 22px; background: linear-gradient(90deg, #fff, var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .badge { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent-blue); padding: 5px 12px; border-radius: 20px; font-weight: 800; }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .logo { font-weight: 800; font-size: 20px; background: linear-gradient(90deg, #fff, var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .ai-label { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-weight: 700; }
+        /* Input Experience */
+        .input-area { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 28px; padding: 24px; margin-bottom: 24px; }
+        textarea { width: 100%; height: 130px; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.6; outline: none; resize: none; }
+        
+        button {
+            width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 50px; 
+            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        button:active { transform: scale(0.96); }
 
-        .input-box {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        /* Results List */
+        #analysis-list { margin-top: 30px; }
+        .email-card {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 28px; padding: 28px; margin-bottom: 20px;
+            backdrop-filter: blur(40px); animation: fadeInUp 0.6s ease; position: relative; overflow: hidden;
         }
 
-        textarea {
-            width: 100%; height: 120px; background: transparent; border: none; color: #fff;
-            font-size: 16px; line-height: 1.6; outline: none; resize: none;
-        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        .btn-main {
-            width: 100%; padding: 16px; background: #fff; color: #000; border: none;
-            border-radius: 50px; font-weight: 700; font-size: 16px; cursor: pointer;
-            transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px;
-        }
-        .btn-main:active { transform: scale(0.97); }
+        .prio { position: absolute; top: 25px; right: 28px; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px; }
+        .urgent { background: #ff453a; color: #fff; box-shadow: 0 0 15px rgba(255, 69, 58, 0.3); }
+        .normal { background: rgba(255,255,255,0.1); color: #fff; }
 
-        /* 分析列表 */
-        .results-header { margin-top: 40px; font-size: 14px; color: var(--accent-cyan); font-weight: 700; display: none; }
-        #analysis-list { margin-top: 15px; }
-
-        .email-item {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 24px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(30px);
-            animation: slideIn 0.5s cubic-bezier(0.2, 1, 0.3, 1);
-            position: relative;
-        }
-
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .urgency-tag { position: absolute; top: 20px; right: 24px; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; }
-        .tag-urgent { background: rgba(255, 69, 58, 0.2); color: #ff453a; border: 1px solid #ff453a; }
-        .tag-normal { background: rgba(50, 215, 75, 0.2); color: #32d74b; border: 1px solid #32d74b; }
-
-        .info-row { margin-bottom: 12px; }
-        .info-row b { font-size: 11px; color: var(--accent-cyan); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
-        .info-row span { font-size: 15px; color: #e2e8f0; line-height: 1.5; font-weight: 500; }
-
-        .empty-state { text-align: center; color: #444; margin-top: 50px; font-size: 14px; }
+        .row { margin-bottom: 20px; }
+        .row:last-child { margin-bottom: 0; }
+        .label { font-size: 11px; color: var(--accent-blue); font-weight: 800; letter-spacing: 1px; margin-bottom: 6px; display: block; }
+        .content { font-size: 17px; color: #f1f5f9; font-weight: 600; line-height: 1.4; }
+        
+        .empty { text-align: center; color: #444; margin-top: 60px; font-size: 14px; font-weight: 500; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div class="header">
-        <div class="logo">GALAXY AI Butler</div>
-        <div class="ai-label">MULTI-MAIL ANALYSIS</div>
+        <div class="logo">GALAXY AI</div>
+        <div class="badge">PRO BUTLER v4.0</div>
     </div>
 
-    <div class="input-box">
-        <textarea id="emailInput" placeholder="請貼入郵件本文內容..."></textarea>
-        <button class="btn-main" onclick="analyzeMail()">
-            分析此郵件
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+    <div class="input-area">
+        <textarea id="emailInput" placeholder="請輸入或貼入郵件本文..."></textarea>
+        <button onclick="smartAnalyze()">
+            <span>智慧摘要分析</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
         </button>
     </div>
 
-    <div id="results-title" class="results-header">已處理的 AI 摘要清單</div>
     <div id="analysis-list">
-        <div class="empty-state">尚無分析紀錄，請在上方貼入內容</div>
+        <div class="empty">等待輸入郵件內容進行解析...</div>
     </div>
 </div>
 
 <script>
-    function analyzeMail() {
+    function smartAnalyze() {
         const text = document.getElementById('emailInput').value.trim();
         if (!text) return;
 
-        // 移除空狀態文字
-        document.querySelector('.empty-state').style.display = 'none';
-        document.getElementById('results-title').style.display = 'block';
+        document.querySelector('.empty').style.display = 'none';
 
-        // --- AI 邏輯開始 ---
+        // --- AI 智慧擷取引擎 ---
 
-        // 1. 判定緊急程度
-        const isUrgent = /緊急|變更|取消|截止|注意|立刻|馬上|修改/.test(text);
-        
-        // 2. 提取時間 (Regex 尋找時間格式)
-        const timeMatch = text.match(/(\d{1,2}月\d{1,2}日|\d{1,2}:\d{2}|下週[一二三四五六日]|明天|下午\d點|上午\d點)/g);
-        const time = timeMatch ? timeMatch.join('、') : "未偵測到具體時間";
+        // 1. 緊急度 (P0 Keywords)
+        const isUrgent = /緊急|變更|取消|截止|立刻|馬上|修改|重要通知/.test(text);
 
-        // 3. 提取地點
-        const locMatch = text.match(/(在|於|地點:|地點在)(.+?)(大樓|廳|室|館|校區|飯店|辦公室)/);
-        const location = locMatch ? locMatch[2] + locMatch[3] : "未偵測到具體地點";
-
-        // 4. 提取主旨/內容 (尋找「」或前 30 字核心)
+        // 2. 智慧摘要 (提取核心動詞與名詞)
         const titleMatch = text.match(/「(.+?)」/);
-        const title = titleMatch ? titleMatch[1] : text.substring(0, 20) + "...";
+        let summary = "";
+        if (titleMatch) {
+            summary = `關於【${titleMatch[1]}】之活動通知。`;
+        } else {
+            summary = text.split(/[。！]/)[0].substring(0, 30) + "...";
+        }
+        // 過濾寒暄詞
+        summary = summary.replace(/春暖花開|誠摯邀請|正式揭開序幕|共襄盛舉|沉浸於/g, "").trim();
 
-        // 5. 行動摘要
-        let action = "閱覽詳細信件內容";
-        if (text.includes("附件")) action = "需查閱附件檔案";
-        if (text.includes("回覆") || text.includes("報名")) action = "需於期限內回覆或報名";
-        if (isUrgent) action = "💡 請優先處理此事項";
+        // 3. 時間偵測
+        const timeMatch = text.match(/(\d{1,2}月\d{1,2}日|\d{1,2}:\d{2}|下週.|明天|下午.點|上午.點)/g);
+        const timeResult = timeMatch ? timeMatch.join('、') : null;
 
-        // --- AI 邏輯結束 ---
+        // 4. 地點偵測 (優化後的 Regex)
+        const locMatch = text.match(/(在|於|地點:|地點在)(.+?)(大樓|廳|室|館|校區|飯店|辦公室|廣場)/);
+        const locResult = locMatch ? locMatch[2] + locMatch[3] : null;
 
-        // 建立新卡片
+        // 5. 行動指南
+        let action = "建議查閱全文了解細節。";
+        if (text.includes("附件")) action = "💡 請務必下載並查看郵件附件。";
+        if (text.includes("回覆") || text.includes("報名")) action = "⚠️ 需在期限內完成回覆或報名手續。";
+        if (isUrgent) action = "🚨 偵測到重大變更，請立即優先處理。";
+
+        // --- 渲染 UI ---
+
         const list = document.getElementById('analysis-list');
-        const newItem = document.createElement('div');
-        newItem.className = 'email-item';
-        
-        newItem.innerHTML = `
-            <div class="urgency-tag ${isUrgent ? 'tag-urgent' : 'tag-normal'}">
-                ${isUrgent ? 'URGENT' : 'NORMAL'}
-            </div>
-            <div class="info-row">
-                <b>📌 主旨內容</b>
-                <span>${title}</span>
-            </div>
-            <div class="info-row">
-                <b>⏰ 關鍵時間</b>
-                <span>${time}</span>
-            </div>
-            <div class="info-row">
-                <b>📍 地點資訊</b>
-                <span>${location}</span>
-            </div>
-            <div class="info-row">
-                <b>🚀 AI 建議行動</b>
-                <span>${action}</span>
+        const card = document.createElement('div');
+        card.className = 'email-card';
+
+        // 動態組合 HTML 內容 (如果沒有地點就不顯示該 Row)
+        let rowsHtml = `
+            <div class="row">
+                <span class="label">AI SUMMARY</span>
+                <span class="content">${summary}</span>
             </div>
         `;
 
-        // 插入到最前面
-        list.insertBefore(newItem, list.firstChild);
+        if (timeResult) {
+            rowsHtml += `
+                <div class="row">
+                    <span class="label">TIME</span>
+                    <span class="content">${timeResult}</span>
+                </div>
+            `;
+        }
 
-        // 清空輸入框
+        if (locResult) {
+            rowsHtml += `
+                <div class="row">
+                    <span class="label">LOCATION</span>
+                    <span class="content">${locResult}</span>
+                </div>
+            `;
+        }
+
+        rowsHtml += `
+            <div class="row">
+                <span class="label">ACTION</span>
+                <span class="content">${action}</span>
+            </div>
+        `;
+
+        card.innerHTML = `
+            <div class="prio ${isUrgent ? 'urgent' : 'normal'}">${isUrgent ? 'URGENT' : 'INFO'}</div>
+            ${rowsHtml}
+        `;
+
+        list.insertBefore(card, list.firstChild);
         document.getElementById('emailInput').value = '';
-        
-        // 觸發震動
-        if (navigator.vibrate) navigator.vibrate(isUrgent ? [100, 50, 100] : [50]);
+        if (navigator.vibrate) navigator.vibrate(isUrgent ? [100, 50, 100] : [40]);
     }
 </script>
 </body>
