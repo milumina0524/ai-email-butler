@@ -3,98 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萬能郵件管家 | 診斷修復版</title>
+    <title>萬能郵件管家 | Samsung AI Butler</title>
     <style>
-        :root { --accent: #38bdf8; --bg: #000; --card: rgba(30, 30, 35, 0.95); }
-        body { background: var(--bg); background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 85%); color: #fff; font-family: system-ui, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        :root { --accent: #38bdf8; --bg: #000; --card: rgba(28, 28, 35, 0.95); }
+        body { background: var(--bg); background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 85%); color: #fff; font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
         .container { width: 100%; max-width: 480px; }
-        .config-card { background: rgba(56, 189, 248, 0.1); border: 1px dashed var(--accent); border-radius: 20px; padding: 15px; margin-bottom: 20px; }
-        .input-section { background: var(--card); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 24px; margin-bottom: 20px; }
-        textarea { width: 100%; height: 120px; background: transparent; border: none; color: #fff; font-size: 16px; outline: none; resize: none; }
-        button { width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 50px; font-weight: 700; cursor: pointer; }
-        .status-log { font-size: 12px; color: #666; margin-top: 10px; text-align: center; }
-        .result-card { background: var(--card); border: 1px solid var(--accent); border-radius: 25px; padding: 20px; margin-top: 20px; animation: slideIn 0.5s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .logo { font-weight: 800; font-size: 24px; color: #fff; letter-spacing: -1px; }
+        .ai-chip { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 5px 12px; border-radius: 20px; font-weight: 800; border: 1px solid var(--accent); }
+        .config-card { background: rgba(255, 255, 255, 0.05); border: 1px dashed var(--accent); border-radius: 20px; padding: 15px; margin-bottom: 20px; display: flex; gap: 10px; }
+        .config-card input { flex: 1; background: transparent; border: none; color: var(--accent); font-size: 13px; outline: none; }
+        .input-section { background: var(--card); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 28px; padding: 24px; margin-bottom: 24px; }
+        textarea { width: 100%; height: 130px; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.6; outline: none; resize: none; margin-bottom: 10px; }
+        button { width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 50px; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        button:active { transform: scale(0.96); }
+        #loader { display: none; text-align: center; margin: 20px 0; color: var(--accent); font-size: 14px; }
+        .result-card { background: var(--card); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 32px; padding: 28px; margin-bottom: 20px; animation: slideUp 0.6s ease forwards; position: relative; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .label { font-size: 11px; color: var(--accent); font-weight: 800; margin-bottom: 8px; display: block; text-transform: uppercase; }
+        .content { font-size: 16px; color: #f1f5f9; line-height: 1.7; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="text-align:center; letter-spacing:-1px;">萬能郵件管家</h2>
-    
+    <div class="header">
+        <div class="logo">萬能郵件管家</div>
+        <div id="status-tag" class="ai-chip">WAITING FOR KEY</div>
+    </div>
+
     <div class="config-card" id="config-ui">
-        <input type="password" id="apiKeyInput" style="width:70%; background:transparent; border:none; color:#fff; outline:none;" placeholder="輸入您的新 API Key...">
-        <button style="width:25%; padding:5px; font-size:12px; display:inline;" onclick="saveKey()">啟動</button>
+        <input type="password" id="apiKeyInput" placeholder="在此輸入個人 Gmail 申請的 API Key...">
+        <button style="width:auto; padding:5px 15px; font-size:12px; background:var(--accent);" onclick="saveKey()">啟動</button>
     </div>
 
     <div class="input-section">
-        <textarea id="emailInput" placeholder="在此貼入郵件內容..."></textarea>
-        <button onclick="smartAnalyze()">AI 深度解析</button>
-        <div id="log" class="status-log">系統就緒</div>
+        <textarea id="emailInput" placeholder="在此貼入長篇郵件本文..."></textarea>
+        <button onclick="askGemini()">啟動智慧分析</button>
     </div>
 
-    <div id="display"></div>
+    <div id="loader">✨ 正在透過 Gemini 解析語義...</div>
+    <div id="display-list"></div>
 </div>
 
 <script>
     let savedKey = sessionStorage.getItem('gemini_key');
-    if (savedKey) document.getElementById('config-ui').style.display = 'none';
+    if (savedKey) {
+        document.getElementById('config-ui').style.display = 'none';
+        updateStatusText('AI READY', '#32d74b');
+    }
 
     function saveKey() {
         const key = document.getElementById('apiKeyInput').value.trim();
         if (key) {
             sessionStorage.setItem('gemini_key', key);
             savedKey = key;
-            location.reload();
+            document.getElementById('config-ui').style.display = 'none';
+            updateStatusText('AI READY', '#32d74b');
+            alert("金鑰已載入，開始分析妳的郵件吧！");
         }
     }
 
-    async function smartAnalyze() {
+    function updateStatusText(text, color) {
+        const tag = document.getElementById('status-tag');
+        tag.innerText = text; tag.style.color = color; tag.style.borderColor = color;
+    }
+
+    async function askGemini() {
         if (!savedKey) return alert('請先輸入 API Key！');
         const text = document.getElementById('emailInput').value.trim();
         if (!text) return;
 
-        const log = document.getElementById('log');
-        const display = document.getElementById('display');
-        log.innerText = "正在嘗試連線至 Google AI 伺服器...";
-        display.innerHTML = "";
+        document.getElementById('loader').style.display = 'block';
 
-        // 定義嘗試順序：Flash -> Pro -> Flash-Latest
-        const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash-latest'];
-        let success = false;
+        // 嘗試兩個最可能的模型名稱
+        const modelNames = ['gemini-1.5-flash', 'gemini-1.5-pro'];
+        let finalResponse = null;
 
-        for (let modelName of models) {
-            if (success) break;
-            log.innerText = `正在嘗試模型: ${modelName}...`;
-
+        for (let model of modelNames) {
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${savedKey}`;
+                // 使用 v1 穩定版路徑
+                const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${savedKey}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `你是一位郵件管家，請用繁體中文摘要這封信的重點、時間、地點與行動建議：${text}` }] }]
+                        contents: [{ parts: [{ text: `你是一位專業的萬能郵件管家。請針對這封郵件提供繁體中文摘要，包含：1.緊急程度 2.約100字詳細摘要 3.時間地點 4.建議行動。內容：${text}` }] }]
                     })
                 });
 
                 const data = await response.json();
-
-                if (data.candidates && data.candidates[0]) {
-                    const aiText = data.candidates[0].content.parts[0].text;
-                    display.innerHTML = `<div class="result-card"><b>AI 摘要結果 (${modelName}):</b><br><br>${aiText.replace(/\n/g, '<br>')}</div>`;
-                    log.innerText = "解析成功！";
-                    success = true;
-                } else if (data.error) {
-                    console.warn(`模型 ${modelName} 失敗:`, data.error.message);
+                if (data.candidates) {
+                    finalResponse = data.candidates[0].content.parts[0].text;
+                    break; // 成功就跳出循環
                 }
             } catch (err) {
-                console.error(err);
+                console.warn(`嘗試模型 ${model} 失敗`);
             }
         }
 
-        if (!success) {
-            log.innerText = "所有模型皆無法連線。";
-            alert("錯誤：所有 AI 模型路徑皆失效。請檢查 API Key 是否為『個人個人 @gmail 帳號』申請，且確保沒有區域限制。");
+        document.getElementById('loader').style.display = 'none';
+
+        if (finalResponse) {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            card.innerHTML = `<span class="label">Galaxy AI 分析結果</span><div class="content">${finalResponse}</div>`;
+            document.getElementById('display-list').insertBefore(card, document.getElementById('display-list').firstChild);
+            document.getElementById('emailInput').value = '';
+        } else {
+            alert("分析失敗：即便使用個人金鑰仍無法找到 AI 模型。建議：請在 Google AI Studio 點擊『Get Code』按鈕，確認該 Key 在官方環境下是否能正常跑出結果。");
         }
     }
 </script>
