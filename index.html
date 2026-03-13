@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samsung Galaxy AI | Mail Butler Pro</title>
+    <title>萬能郵件管家 | Samsung Galaxy AI</title>
     <style>
         :root {
             --samsung-blue: #1428a0;
             --accent-cyan: #38bdf8;
             --bg: #000;
-            --card-bg: rgba(30, 30, 35, 0.8);
-            --border: rgba(255, 255, 255, 0.12);
+            --card-bg: rgba(32, 32, 38, 0.85);
+            --border: rgba(255, 255, 255, 0.15);
         }
 
         body {
@@ -22,19 +22,142 @@
         }
 
         .app-container { width: 100%; max-width: 500px; }
+        
+        /* Header Section */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; background: linear-gradient(90deg, #fff, var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .badge { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); padding: 5px 12px; border-radius: 20px; font-weight: 800; }
+        .logo { font-weight: 800; font-size: 24px; letter-spacing: -1px; color: #fff; }
+        .ai-status { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); padding: 5px 12px; border-radius: 20px; font-weight: 800; letter-spacing: 0.5px; }
 
         /* Input Area */
-        .input-card { background: var(--card-bg); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 28px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        textarea { width: 100%; height: 140px; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.6; outline: none; resize: none; margin-bottom: 10px; }
+        .input-card { background: var(--card-bg); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 28px; padding: 24px; margin-bottom: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        textarea { width: 100%; height: 140px; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.6; outline: none; resize: none; margin-bottom: 15px; }
         
         button {
             width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 50px; 
-            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s cubic-bezier(0.2, 1, 0.3, 1);
+            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex; justify-content: center; align-items: center; gap: 10px;
         }
+        button:active { transform: scale(0.95); }
+
+        /* Analysis Results */
+        #analysis-list { margin-top: 30px; }
+        .email-card {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 32px; padding: 30px; margin-bottom: 24px;
+            backdrop-filter: blur(40px); animation: slideIn 0.6s ease; position: relative; overflow: hidden;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+        .prio-badge { position: absolute; top: 25px; right: 30px; font-size: 10px; font-weight: 900; padding: 5px 14px; border-radius: 20px; letter-spacing: 1px; }
+        .urgent { background: #ff453a; color: #fff; }
+        .normal { background: rgba(255,255,255,0.1); color: #fff; }
+
+        .row { margin-bottom: 20px; }
+        .row:last-child { margin-bottom: 0; }
+        .label { font-size: 11px; color: var(--accent-cyan); font-weight: 800; letter-spacing: 1.5px; margin-bottom: 6px; display: block; text-transform: uppercase; }
+        .content { font-size: 16px; color: #f1f5f9; font-weight: 500; line-height: 1.7; }
+        
+        .empty-hint { text-align: center; color: #444; margin-top: 60px; font-size: 14px; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <div class="logo">萬能郵件管家</div>
+        <div class="ai-status">GALAXY AI ENGINE</div>
+    </div>
+
+    <div class="input-card">
+        <textarea id="emailInput" placeholder="請將郵件本文內容貼入於此..."></textarea>
+        <button onclick="smartAnalyze()">
+            <span>啟動智慧分析</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        </button>
+    </div>
+
+    <div id="analysis-list">
+        <div class="empty-hint">尚無處理紀錄，等待輸入中...</div>
+    </div>
+</div>
+
+<script>
+    function smartAnalyze() {
+        const text = document.getElementById('emailInput').value.trim();
+        if (!text) return;
+
+        document.querySelector('.empty-hint').style.display = 'none';
+
+        // --- 核心 AI 邏輯 ---
+
+        // 1. 優先級判斷
+        const isUrgent = /緊急|變更|取消|截止|立刻|馬上|修改|重要通知|複試|考題|面試/.test(text);
+
+        // 2. 智慧摘要 (針對內容長度重組)
+        const titleMatch = text.match(/「(.+?)」/);
+        const eventTitle = titleMatch ? `【${titleMatch[1]}】` : "此封郵件事項";
+        
+        // 過濾贅字
+        let bodySnippet = text.replace(/春暖花開|誠摯邀請|正式揭開序幕|共襄盛舉|沉浸於|熱情交織的/g, "").trim();
+        let mainSentence = bodySnippet.split(/[。！]/).find(s => s.length > 10) || "相關詳細內容";
+        
+        // 生成具備資訊量的長摘要
+        const structuredSummary = `本郵件旨在告知有關${eventTitle}的具體安排。核心重點為：${mainSentence}。建議收件人依照摘要內容與後續指南進行準備。`;
+
+        // 3. 關鍵資訊偵測 (動態欄位)
+        const timeMatch = text.match(/(\d{1,2}月\d{1,2}日|\d{1,2}:\d{2}|下週.|明天|下午.點|上午.點)/g);
+        const timeVal = timeMatch ? Array.from(new Set(timeMatch)).join('、') : null;
+
+        const locMatch = text.match(/(在|於|地點:|地點在)(.+?)(大樓|廳|室|館|校區|飯店|辦公室|廣場|大廳|禮堂)/);
+        const locVal = locMatch ? locMatch[2] + locMatch[3] : null;
+
+        // 4. 建議行動
+        let actionMsg = "建議詳閱全文以獲取完整資訊。";
+        if (text.includes("附件")) actionMsg = "💡 系統偵測到附件，請務必開啟並查閱詳細圖表或文件。";
+        if (text.includes("回覆") || text.includes("報名")) actionMsg = "⚠️ 此事項涉及後續流程，請於限期內完成回覆或報名手續。";
+        if (isUrgent) actionMsg = "🚨 偵測到重大時程變更或緊急通知，請立即優先處理此郵件。";
+
+        // --- 渲染 UI ---
+
+        const list = document.getElementById('analysis-list');
+        const card = document.createElement('div');
+        card.className = 'email-card';
+
+        let contentHtml = `
+            <div class="row">
+                <span class="label">AI 深度摘要</span>
+                <span class="content">${structuredSummary}</span>
+            </div>
+        `;
+
+        if (timeVal) {
+            contentHtml += `<div class="row"><span class="label">關鍵時間點</span><span class="content">${timeVal}</span></div>`;
+        }
+
+        if (locVal) {
+            contentHtml += `<div class="row"><span class="label">活動地點</span><span class="content">${locVal}</span></div>`;
+        }
+
+        contentHtml += `
+            <div class="row">
+                <span class="label">智慧行動指南</span>
+                <span class="content">${actionMsg}</span>
+            </div>
+        `;
+
+        card.innerHTML = `
+            <div class="prio-badge ${isUrgent ? 'urgent' : 'normal'}">${isUrgent ? 'URGENT' : 'INFO'}</div>
+            ${contentHtml}
+        `;
+
+        list.insertBefore(card, list.firstChild);
+        document.getElementById('emailInput').value = '';
+        
+        // 震動反饋
+        if (navigator.vibrate) navigator.vibrate(isUrgent ? [80, 40, 80] : [40]);
+    }
+</script>
+</body>
+</html>        }
         button:active { transform: scale(0.96); }
 
         /* Results List */
