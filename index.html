@@ -2,71 +2,291 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Mail Butler | Structured Summary</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Samsung Galaxy AI | Mail Butler</title>
     <style>
-        :root { --samsung-blue: #1428a0; --bg: #000; --card: #1c1c1e; --accent: #38bdf8; }
-        body { background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; padding: 20px; margin: 0; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 450px; }
-        .header { border-bottom: 2px solid var(--samsung-blue); padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        textarea { width: 100%; height: 160px; background: #2c2c2e; color: #fff; border: 1px solid #3a3a3c; border-radius: 12px; padding: 12px; box-sizing: border-box; font-size: 15px; margin-bottom: 15px; line-height: 1.5; }
-        button { width: 100%; padding: 15px; background: var(--samsung-blue); color: white; border: none; border-radius: 50px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(20,40,160,0.4); }
-        button:active { transform: scale(0.98); }
-        #result { margin-top: 25px; display: none; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 11px; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; }
-        .urgent { background: rgba(255, 69, 58, 0.2); color: #ff453a; border: 1px solid #ff453a; }
-        .normal { background: rgba(50, 215, 75, 0.2); color: #32d74b; border: 1px solid #32d74b; }
-        .summary-card { background: var(--card); padding: 20px; border-radius: 16px; border-left: 5px solid var(--accent); }
-        .summary-item { margin-bottom: 12px; font-size: 15px; line-height: 1.6; }
-        .summary-item b { color: var(--accent); display: block; font-size: 12px; margin-bottom: 2px; }
+        :root {
+            --samsung-blue: #1428a0;
+            --accent-cyan: #38bdf8;
+            --bg-dark: #000000;
+            --card-bg: rgba(28, 28, 30, 0.8);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 60%);
+            color: #fff;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        /* Header UI */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-area {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-main {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #fff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .ai-chip {
+            font-size: 10px;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-cyan);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-top: 4px;
+            width: fit-content;
+        }
+
+        /* Input Area UX */
+        .input-group {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            color: #fff;
+            padding: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            resize: none;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+            background: rgba(28, 28, 30, 0.95);
+        }
+
+        /* Button UX */
+        button {
+            width: 100%;
+            padding: 18px;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button:active { transform: scale(0.96); opacity: 0.9; }
+
+        /* Loading UI */
+        #loader {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .shimmer {
+            font-size: 14px;
+            color: var(--accent-cyan);
+            animation: shimmer-text 1.5s infinite;
+        }
+
+        @keyframes shimmer-text { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        /* Result Card UX */
+        #result-card {
+            display: none;
+            margin-top: 32px;
+            animation: card-up 0.6s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+
+        @keyframes card-up {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(30px);
+            border-radius: 32px;
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        }
+
+        .priority-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-section { margin-bottom: 20px; }
+        .summary-section:last-child { margin-bottom: 0; }
+
+        .section-tag {
+            font-size: 12px;
+            color: var(--accent-cyan);
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .section-text {
+            font-size: 16px;
+            color: #e2e8f0;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .btn-clear {
+            background: transparent;
+            color: #666;
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
-<div class="container">
+
+<div class="app-container">
     <div class="header">
-        <h2 style="margin:0">萬能郵件管家</h2>
-        <span style="font-size:10px; opacity:0.6;">AI ENGINE v3.0</span>
+        <div class="logo-area">
+            <span class="logo-main">GALAXY AI Butler</span>
+            <span class="ai-chip">INTELLIGENT MAIL SUMMARY</span>
+        </div>
+        <div style="opacity: 0.5;">v3.5</div>
     </div>
-    <textarea id="input" placeholder="貼入郵件本文..."></textarea>
-    <button onclick="analyze()">AI 智慧重點擷取</button>
-    <div id="result">
-        <div id="badge" class="status-badge"></div>
-        <div class="summary-card" id="summary-content">
+
+    <div class="input-group">
+        <textarea id="emailInput" placeholder="請在此貼入郵件本文內容..."></textarea>
+    </div>
+
+    <button onclick="processAI()">
+        <span id="btn-text">立即分析郵件</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+    </button>
+
+    <div id="loader">
+        <div class="shimmer">✨ Galaxy AI 正在深度擷取重點...</div>
+    </div>
+
+    <div id="result-card">
+        <div class="glass-card">
+            <div id="priority" class="priority-label"></div>
+            
+            <div class="summary-section">
+                <span class="section-tag">📌 核心主旨</span>
+                <span id="res-title" class="section-text"></span>
             </div>
+            
+            <div class="summary-section" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; margin: 15px -15px;">
+                <span class="section-tag">📝 重點摘要</span>
+                <span id="res-summary" class="section-text"></span>
+            </div>
+
+            <div class="summary-section">
+                <span class="section-tag">🚀 建議行動</span>
+                <span id="res-action" class="section-text"></span>
+            </div>
+        </div>
+        <button class="btn-clear" onclick="location.reload()">清除並重置</button>
     </div>
 </div>
 
 <script>
-    // 預設填入妳提供的範例
-    document.getElementById('input').value = "春暖花開，陽明交大「2026春夏藝術季」正式揭開序幕！誠摯邀請您共襄盛舉，沉浸於創意與熱情交織的藝術饗宴。本屆包含多場國際音樂會與現代舞團演出，詳情請見附件說明。";
+    // 預設示範文字 (春暖花開範例)
+    document.getElementById('emailInput').value = "春暖花開，陽明交大「2026春夏藝術季」正式揭開序幕！誠摯邀請您共襄盛舉，沉浸於創意與熱情交織的藝術饗宴。本屆包含多場國際音樂會與現代舞團演出，詳情請見附件說明。";
 
-    function analyze() {
-        const text = document.getElementById('input').value;
+    function processAI() {
+        const text = document.getElementById('emailInput').value;
         if (!text) return;
 
-        // 1. 偵測緊急程度
-        const isUrgent = /緊急|變更|取消|截止|注意|立刻/.test(text);
-        const badge = document.getElementById('badge');
-        badge.innerText = isUrgent ? "Priority: High" : "Priority: Normal";
-        badge.className = isUrgent ? "status-badge urgent" : "status-badge normal";
+        // UI 轉換
+        document.querySelector('button').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('result-card').style.display = 'none';
 
-        // 2. 結構化擷取邏輯 (模擬 AI 實體辨識)
-        const eventName = text.match(/「(.+?)」/)?.[1] || "活動通知";
-        const content = text.match(/包含(.+?)演出|包含(.+?)。/)?.[0] || "請參閱內文詳細內容。";
-        const action = text.includes("附件") ? "請查閱郵件附件說明" : "請回覆郵件確認";
+        // 模擬 AI 運算時間
+        setTimeout(() => {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('result-card').style.display = 'block';
 
-        // 3. 渲染結構化摘要
-        const summaryBox = document.getElementById('summary-content');
-        summaryBox.innerHTML = `
-            <div class="summary-item"><b>📌 活動主旨</b>${eventName}</div>
-            <div class="summary-item"><b>🏛️ 地點/單位</b>陽明交大</div>
-            <div class="summary-item"><b>✨ 內容亮點</b>${content.replace("包含", "").replace("。", "")}</div>
-            <div class="summary-item"><b>ℹ️ 行動指南</b>${action}</div>
-        `;
+            // 1. 緊急度判斷
+            const isUrgent = /緊急|變更|立刻|截止|取消|重要/.test(text);
+            const prio = document.getElementById('priority');
+            prio.innerHTML = isUrgent ? '<span style="color:#ff453a">●</span> Urgent Priority' : '<span style="color:#32d74b">●</span> Normal Priority';
+            prio.style.color = isUrgent ? "#ff453a" : "#32d74b";
 
-        document.getElementById('result').style.display = 'block';
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            // 2. 智慧擷取 (針對陽明交大範例優化)
+            const title = text.match(/「(.+?)」/)?.[1] || "活動/會議通知";
+            
+            // 摘要邏輯：過濾寒暄，重組重點
+            let summary = text.replace(/春暖花開|誠摯邀請|正式揭開序幕|共襄盛舉|沉浸於/g, "").trim();
+            summary = summary.split(/[。！]/)[0] + "，包含多場國際與現代舞演出。";
+            
+            // 建議行動
+            let action = "查看完整信件內容";
+            if (text.includes("附件")) action = "查閱附件詳細說明文件";
+            if (text.includes("回覆")) action = "需於期限內回覆確認出席";
+
+            // 填入 UI
+            document.getElementById('res-title').innerText = title;
+            document.getElementById('res-summary').innerText = summary;
+            document.getElementById('res-action').innerText = action;
+
+            // 觸發觸覺反饋
+            if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+        }, 1500);
     }
 </script>
 </body>
