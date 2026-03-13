@@ -3,290 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samsung Galaxy AI | Mail Butler</title>
+    <title>Samsung Galaxy AI | Universal Butler</title>
     <style>
         :root {
             --samsung-blue: #1428a0;
             --accent-cyan: #38bdf8;
-            --bg-dark: #000000;
-            --card-bg: rgba(28, 28, 30, 0.8);
-            --border-color: rgba(255, 255, 255, 0.1);
+            --bg: #000;
+            --card-bg: rgba(28, 28, 30, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 60%);
+            background: var(--bg);
+            background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 70%);
             color: #fff;
             font-family: 'Inter', -apple-system, system-ui, sans-serif;
             margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
         }
 
-        .app-container {
-            width: 100%;
-            max-width: 420px;
-            padding: 24px;
-            box-sizing: border-box;
-        }
+        .app-container { width: 100%; max-width: 500px; }
 
-        /* Header UI */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .logo { font-weight: 800; font-size: 20px; background: linear-gradient(90deg, #fff, var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .ai-label { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-weight: 700; }
 
-        .logo-area {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .logo-main {
-            font-size: 18px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, #fff, var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .ai-chip {
-            font-size: 10px;
-            background: rgba(56, 189, 248, 0.15);
-            color: var(--accent-cyan);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-            margin-top: 4px;
-            width: fit-content;
-        }
-
-        /* Input Area UX */
-        .input-group {
-            position: relative;
-            margin-bottom: 24px;
+        .input-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         textarea {
-            width: 100%;
-            height: 180px;
+            width: 100%; height: 120px; background: transparent; border: none; color: #fff;
+            font-size: 16px; line-height: 1.6; outline: none; resize: none;
+        }
+
+        .btn-main {
+            width: 100%; padding: 16px; background: #fff; color: #000; border: none;
+            border-radius: 50px; font-weight: 700; font-size: 16px; cursor: pointer;
+            transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-main:active { transform: scale(0.97); }
+
+        /* 分析列表 */
+        .results-header { margin-top: 40px; font-size: 14px; color: var(--accent-cyan); font-weight: 700; display: none; }
+        #analysis-list { margin-top: 15px; }
+
+        .email-item {
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
             border-radius: 24px;
-            color: #fff;
-            padding: 20px;
-            font-size: 16px;
-            line-height: 1.6;
-            box-sizing: border-box;
-            outline: none;
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            resize: none;
-        }
-
-        textarea:focus {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
-            background: rgba(28, 28, 30, 0.95);
-        }
-
-        /* Button UX */
-        button {
-            width: 100%;
-            padding: 18px;
-            background: #fff;
-            color: #000;
-            border: none;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        button:active { transform: scale(0.96); opacity: 0.9; }
-
-        /* Loading UI */
-        #loader {
-            display: none;
-            text-align: center;
-            padding: 30px;
-        }
-
-        .shimmer {
-            font-size: 14px;
-            color: var(--accent-cyan);
-            animation: shimmer-text 1.5s infinite;
-        }
-
-        @keyframes shimmer-text { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
-
-        /* Result Card UX */
-        #result-card {
-            display: none;
-            margin-top: 32px;
-            animation: card-up 0.6s cubic-bezier(0.2, 1, 0.3, 1);
-        }
-
-        @keyframes card-up {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
+            padding: 24px;
+            margin-bottom: 20px;
             backdrop-filter: blur(30px);
-            border-radius: 32px;
-            padding: 28px;
+            animation: slideIn 0.5s cubic-bezier(0.2, 1, 0.3, 1);
             position: relative;
-            overflow: hidden;
         }
 
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .priority-label {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        .urgency-tag { position: absolute; top: 20px; right: 24px; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; }
+        .tag-urgent { background: rgba(255, 69, 58, 0.2); color: #ff453a; border: 1px solid #ff453a; }
+        .tag-normal { background: rgba(50, 215, 75, 0.2); color: #32d74b; border: 1px solid #32d74b; }
 
-        .summary-section { margin-bottom: 20px; }
-        .summary-section:last-child { margin-bottom: 0; }
+        .info-row { margin-bottom: 12px; }
+        .info-row b { font-size: 11px; color: var(--accent-cyan); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .info-row span { font-size: 15px; color: #e2e8f0; line-height: 1.5; font-weight: 500; }
 
-        .section-tag {
-            font-size: 12px;
-            color: var(--accent-cyan);
-            font-weight: 700;
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        .section-text {
-            font-size: 16px;
-            color: #e2e8f0;
-            line-height: 1.5;
-            font-weight: 500;
-        }
-
-        .btn-clear {
-            background: transparent;
-            color: #666;
-            margin-top: 20px;
-            font-size: 14px;
-            font-weight: 500;
-        }
+        .empty-state { text-align: center; color: #444; margin-top: 50px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div class="header">
-        <div class="logo-area">
-            <span class="logo-main">GALAXY AI Butler</span>
-            <span class="ai-chip">INTELLIGENT MAIL SUMMARY</span>
-        </div>
-        <div style="opacity: 0.5;">v3.5</div>
+        <div class="logo">GALAXY AI Butler</div>
+        <div class="ai-label">MULTI-MAIL ANALYSIS</div>
     </div>
 
-    <div class="input-group">
-        <textarea id="emailInput" placeholder="請在此貼入郵件本文內容..."></textarea>
+    <div class="input-box">
+        <textarea id="emailInput" placeholder="請貼入郵件本文內容..."></textarea>
+        <button class="btn-main" onclick="analyzeMail()">
+            分析此郵件
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        </button>
     </div>
 
-    <button onclick="processAI()">
-        <span id="btn-text">立即分析郵件</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-    </button>
-
-    <div id="loader">
-        <div class="shimmer">✨ Galaxy AI 正在深度擷取重點...</div>
-    </div>
-
-    <div id="result-card">
-        <div class="glass-card">
-            <div id="priority" class="priority-label"></div>
-            
-            <div class="summary-section">
-                <span class="section-tag">📌 核心主旨</span>
-                <span id="res-title" class="section-text"></span>
-            </div>
-            
-            <div class="summary-section" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; margin: 15px -15px;">
-                <span class="section-tag">📝 重點摘要</span>
-                <span id="res-summary" class="section-text"></span>
-            </div>
-
-            <div class="summary-section">
-                <span class="section-tag">🚀 建議行動</span>
-                <span id="res-action" class="section-text"></span>
-            </div>
-        </div>
-        <button class="btn-clear" onclick="location.reload()">清除並重置</button>
+    <div id="results-title" class="results-header">已處理的 AI 摘要清單</div>
+    <div id="analysis-list">
+        <div class="empty-state">尚無分析紀錄，請在上方貼入內容</div>
     </div>
 </div>
 
 <script>
-    // 預設示範文字 (春暖花開範例)
-    document.getElementById('emailInput').value = "春暖花開，陽明交大「2026春夏藝術季」正式揭開序幕！誠摯邀請您共襄盛舉，沉浸於創意與熱情交織的藝術饗宴。本屆包含多場國際音樂會與現代舞團演出，詳情請見附件說明。";
-
-    function processAI() {
-        const text = document.getElementById('emailInput').value;
+    function analyzeMail() {
+        const text = document.getElementById('emailInput').value.trim();
         if (!text) return;
 
-        // UI 轉換
-        document.querySelector('button').style.display = 'none';
-        document.getElementById('loader').style.display = 'block';
-        document.getElementById('result-card').style.display = 'none';
+        // 移除空狀態文字
+        document.querySelector('.empty-state').style.display = 'none';
+        document.getElementById('results-title').style.display = 'block';
 
-        // 模擬 AI 運算時間
-        setTimeout(() => {
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('result-card').style.display = 'block';
+        // --- AI 邏輯開始 ---
 
-            // 1. 緊急度判斷
-            const isUrgent = /緊急|變更|立刻|截止|取消|重要/.test(text);
-            const prio = document.getElementById('priority');
-            prio.innerHTML = isUrgent ? '<span style="color:#ff453a">●</span> Urgent Priority' : '<span style="color:#32d74b">●</span> Normal Priority';
-            prio.style.color = isUrgent ? "#ff453a" : "#32d74b";
+        // 1. 判定緊急程度
+        const isUrgent = /緊急|變更|取消|截止|注意|立刻|馬上|修改/.test(text);
+        
+        // 2. 提取時間 (Regex 尋找時間格式)
+        const timeMatch = text.match(/(\d{1,2}月\d{1,2}日|\d{1,2}:\d{2}|下週[一二三四五六日]|明天|下午\d點|上午\d點)/g);
+        const time = timeMatch ? timeMatch.join('、') : "未偵測到具體時間";
 
-            // 2. 智慧擷取 (針對陽明交大範例優化)
-            const title = text.match(/「(.+?)」/)?.[1] || "活動/會議通知";
-            
-            // 摘要邏輯：過濾寒暄，重組重點
-            let summary = text.replace(/春暖花開|誠摯邀請|正式揭開序幕|共襄盛舉|沉浸於/g, "").trim();
-            summary = summary.split(/[。！]/)[0] + "，包含多場國際與現代舞演出。";
-            
-            // 建議行動
-            let action = "查看完整信件內容";
-            if (text.includes("附件")) action = "查閱附件詳細說明文件";
-            if (text.includes("回覆")) action = "需於期限內回覆確認出席";
+        // 3. 提取地點
+        const locMatch = text.match(/(在|於|地點:|地點在)(.+?)(大樓|廳|室|館|校區|飯店|辦公室)/);
+        const location = locMatch ? locMatch[2] + locMatch[3] : "未偵測到具體地點";
 
-            // 填入 UI
-            document.getElementById('res-title').innerText = title;
-            document.getElementById('res-summary').innerText = summary;
-            document.getElementById('res-action').innerText = action;
+        // 4. 提取主旨/內容 (尋找「」或前 30 字核心)
+        const titleMatch = text.match(/「(.+?)」/);
+        const title = titleMatch ? titleMatch[1] : text.substring(0, 20) + "...";
 
-            // 觸發觸覺反饋
-            if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
-        }, 1500);
+        // 5. 行動摘要
+        let action = "閱覽詳細信件內容";
+        if (text.includes("附件")) action = "需查閱附件檔案";
+        if (text.includes("回覆") || text.includes("報名")) action = "需於期限內回覆或報名";
+        if (isUrgent) action = "💡 請優先處理此事項";
+
+        // --- AI 邏輯結束 ---
+
+        // 建立新卡片
+        const list = document.getElementById('analysis-list');
+        const newItem = document.createElement('div');
+        newItem.className = 'email-item';
+        
+        newItem.innerHTML = `
+            <div class="urgency-tag ${isUrgent ? 'tag-urgent' : 'tag-normal'}">
+                ${isUrgent ? 'URGENT' : 'NORMAL'}
+            </div>
+            <div class="info-row">
+                <b>📌 主旨內容</b>
+                <span>${title}</span>
+            </div>
+            <div class="info-row">
+                <b>⏰ 關鍵時間</b>
+                <span>${time}</span>
+            </div>
+            <div class="info-row">
+                <b>📍 地點資訊</b>
+                <span>${location}</span>
+            </div>
+            <div class="info-row">
+                <b>🚀 AI 建議行動</b>
+                <span>${action}</span>
+            </div>
+        `;
+
+        // 插入到最前面
+        list.insertBefore(newItem, list.firstChild);
+
+        // 清空輸入框
+        document.getElementById('emailInput').value = '';
+        
+        // 觸發震動
+        if (navigator.vibrate) navigator.vibrate(isUrgent ? [100, 50, 100] : [50]);
     }
 </script>
 </body>
