@@ -3,38 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萬能郵件管家 | Powered by Gemini</title>
+    <title>萬能郵件管家 | Universal AI Butler</title>
     <style>
-        :root { --samsung-blue: #1428a0; --accent: #38bdf8; --bg: #000; --card: rgba(28, 28, 32, 0.9); }
-        body { background: var(--bg); background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 85%); color: #fff; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        :root { --accent: #38bdf8; --bg: #000; --card: rgba(30, 30, 35, 0.9); }
+        body { background: var(--bg); background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 85%); color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
         .app { width: 100%; max-width: 480px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .ai-badge { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3); }
-        .input-card { background: var(--card); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 20px; margin-bottom: 20px; }
-        textarea { width: 100%; height: 120px; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.6; outline: none; resize: none; }
-        button { width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 50px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        #loader { display: none; text-align: center; margin: 20px 0; color: var(--accent); font-size: 14px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-        .result-card { background: var(--card); border: 1px solid rgba(255,255,255,0.1); border-radius: 32px; padding: 28px; margin-bottom: 20px; animation: slideIn 0.5s ease; position: relative; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .label { font-size: 11px; color: var(--accent); font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; display: block; text-transform: uppercase; }
-        .content { font-size: 16px; color: #f1f5f9; font-weight: 500; line-height: 1.6; }
-        .prio { position: absolute; top: 25px; right: 28px; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 20px; }
-        .urgent { background: #ff453a; color: #fff; }
+        .logo { font-weight: 900; font-size: 24px; letter-spacing: -1px; }
+        .ai-chip { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .input-card { background: var(--card); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 24px; margin-bottom: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+        textarea { width: 100%; height: 130px; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.6; outline: none; resize: none; margin-bottom: 15px; }
+        button { width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 50px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; justify-content: center; align-items: center; gap: 10px; }
+        button:active { transform: scale(0.95); }
+        .result-card { background: var(--card); border: 1px solid rgba(255,255,255,0.12); border-radius: 32px; padding: 30px; margin-bottom: 24px; animation: slideUp 0.6s ease forwards; position: relative; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .prio { position: absolute; top: 25px; right: 30px; font-size: 10px; font-weight: 900; padding: 5px 14px; border-radius: 20px; }
+        .urgent { background: #ff453a; color: #fff; box-shadow: 0 0 15px rgba(255, 69, 58, 0.4); }
         .normal { background: rgba(255,255,255,0.1); color: #fff; }
+        .row { margin-bottom: 20px; }
+        .label { font-size: 11px; color: var(--accent); font-weight: 800; letter-spacing: 1.5px; margin-bottom: 6px; display: block; text-transform: uppercase; }
+        .content { font-size: 16px; color: #f1f5f9; font-weight: 500; line-height: 1.7; }
     </style>
 </head>
 <body>
-
 <div class="app">
     <div class="header">
-        <div style="font-weight:800; font-size:22px;">萬能郵件管家</div>
-        <div id="ai-status" class="ai-badge">ON-DEVICE AI READY</div>
+        <div class="logo">萬能郵件管家</div>
+        <div class="ai-chip">UNIVERSAL AI ENGINE</div>
     </div>
-
     <div class="input-card">
         <textarea id="emailInput" placeholder="在此輸入或貼入郵件本文..."></textarea>
-        <button onclick="smartProcess()">
+        <button onclick="smartAnalyze()">
+            <span>啟動智慧分析</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        </button>
+    </div>
+    <div id="results"></div>
+</div>
+
+<script>
+    function smartAnalyze() {
+        const text = document.getElementById('emailInput').value.trim();
+        if (!text) return;
+
+        // 1. 偵測緊急程度
+        const isUrgent = /緊急|變更|取消|截止|立刻|複試|考題|面試|重要通知|注意/.test(text);
+
+        // 2. 智慧結構化摘要 (iPhone 優化版)
+        const titleMatch = text.match(/「(.+?)」/);
+        const subject = titleMatch ? `【${titleMatch[1]}】` : "郵件事項";
+        
+        let bodySnippet = text.replace(/春暖花開|誠摯邀請|正式揭開序幕|共襄盛舉|沉浸於|創意與熱情交織的/g, "").trim();
+        let keyPoint = bodySnippet.split(/[。！\n]/).find(s => s.length > 10) || "活動相關細節";
+        
+        const summary = `本封郵件主要通知有關${subject}的具體安排。重點摘要如下：${keyPoint}。請收件人依照此資訊進行準備。`;
+
+        // 3. 關鍵資訊偵測 (時間/地點)
+        const timeMatch = text.match(/(\d{1,2}月\d{1,2}日|\d{1,2}:\d{2}|下週.|明天|下午.點|上午.點)/g);
+        const timeVal = timeMatch ? Array.from(new Set(timeMatch)).join('、') : null;
+
+        const locMatch = text.match(/(在|於|地點:|地點在)(.+?)(大樓|廳|室|館|校區|宿舍|研究室|大廳|廣場)/);
+        const locVal = locMatch ? locMatch[2] + locMatch[3] : null;
+
+        // 4. 行動指南
+        let action = "建議閱覽全文以獲取完整資訊。";
+        if (text.includes("附件")) action = "💡 偵測到附件，請務必查閱詳細文件內容。";
+        if (text.includes("回覆") || text.includes("報名")) action = "⚠️ 需在期限內完成回覆或報名手續。";
+        if (isUrgent) action = "🚨 偵測到重大變更，請立即優先處理。";
+
+        // --- 渲染 UI ---
+        const results = document.getElementById('results');
+        const card = document.createElement('div');
+        card.className = 'result-card';
+
+        let rows = `<div class="row"><span class="label">AI 智慧摘要</span><span class="content">${summary}</span></div>`;
+        if (timeVal) rows += `<div class="row"><span class="label">關鍵時間點</span><span class="content">${timeVal}</span></div>`;
+        if (locVal) rows += `<div class="row"><span class="label">活動地點</span><span class="content">${locVal}</span></div>`;
+        rows += `<div class="row"><span class="label">建議行動指南</span><span class="content">${action}</span></div>`;
+
+        card.innerHTML = `<div class="prio ${isUrgent ? 'urgent' : 'normal'}">${isUrgent ? 'URGENT' : 'INFO'}</div>${rows}`;
+        results.insertBefore(card, results.firstChild);
+        document.getElementById('emailInput').value = '';
+        if (navigator.vibrate) navigator.vibrate(isUrgent ? [80, 40, 80] : [40]);
+    }
+</script>
+</body>
+</html>        <button onclick="smartProcess()">
             <span>啟動 Galaxy AI 分析</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
         </button>
