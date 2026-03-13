@@ -4,62 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>萬能郵件管家 | Galaxy AI</title>
-    
     <style>
-        :root {
-            --samsung-blue: #1428a0;
-            --accent: #38bdf8;
-            --bg: #000;
-            --card: rgba(28, 28, 35, 0.9);
-            --border: rgba(255, 255, 255, 0.15);
-        }
-
-        body {
-            background: var(--bg);
-            background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 85%);
-            color: #fff;
-            font-family: -apple-system, system-ui, sans-serif;
-            margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh;
-        }
-
+        :root { --accent: #38bdf8; --bg: #000; --card: rgba(28, 28, 35, 0.95); --border: rgba(255, 255, 255, 0.15); }
+        body { background: var(--bg); background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, #000 85%); color: #fff; font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
         .container { width: 100%; max-width: 480px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .logo { font-weight: 800; font-size: 24px; color: #fff; letter-spacing: -1px; }
-        .ai-chip { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-weight: 800; border: 1px solid var(--accent); }
-
-        /* 金鑰設定區 */
-        .config-card {
-            background: rgba(56, 189, 248, 0.05);
-            border: 1px dashed var(--accent);
-            border-radius: 20px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .config-card input {
-            flex: 1; background: transparent; border: none; color: var(--accent); font-size: 13px; outline: none; font-family: monospace;
-        }
-
-        /* 輸入區 */
-        .input-section { background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 28px; padding: 24px; margin-bottom: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        textarea { width: 100%; height: 130px; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.6; outline: none; resize: none; margin-bottom: 15px; }
-        
-        button { width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 50px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        button:active { transform: scale(0.96); }
-
-        /* 結果顯示區 */
+        .ai-chip { font-size: 10px; background: rgba(56, 189, 248, 0.15); color: var(--accent); padding: 5px 12px; border-radius: 20px; font-weight: 800; border: 1px solid var(--accent); }
+        .config-card { background: rgba(255, 255, 255, 0.05); border: 1px dashed var(--accent); border-radius: 20px; padding: 15px; margin-bottom: 20px; display: flex; gap: 10px; }
+        .config-card input { flex: 1; background: transparent; border: none; color: var(--accent); font-size: 13px; outline: none; }
+        .input-section { background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 28px; padding: 24px; margin-bottom: 24px; }
+        textarea { width: 100%; height: 130px; background: transparent; border: none; color: #fff; font-size: 16px; line-height: 1.6; outline: none; resize: none; margin-bottom: 10px; }
+        button { width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 50px; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
         #loader { display: none; text-align: center; margin: 20px 0; color: var(--accent); font-size: 14px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        .result-card { background: var(--card); border: 1px solid var(--border); border-radius: 32px; padding: 28px; margin-bottom: 24px; animation: slideUp 0.6s ease forwards; position: relative; }
+        .result-card { background: var(--card); border: 1px solid var(--border); border-radius: 32px; padding: 28px; margin-bottom: 20px; animation: slideUp 0.6s ease forwards; position: relative; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
-
-        .prio-label { font-size: 10px; font-weight: 900; margin-bottom: 15px; letter-spacing: 1px; }
-        .row { margin-bottom: 20px; }
-        .label { font-size: 11px; color: var(--accent); font-weight: 800; letter-spacing: 1.5px; margin-bottom: 6px; display: block; text-transform: uppercase; }
-        .content { font-size: 16px; color: #f1f5f9; font-weight: 500; line-height: 1.7; white-space: pre-wrap; }
+        .label { font-size: 11px; color: var(--accent); font-weight: 800; margin-bottom: 8px; display: block; text-transform: uppercase; }
+        .content { font-size: 16px; color: #f1f5f9; line-height: 1.7; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -71,12 +33,12 @@
     </div>
 
     <div class="config-card" id="config-ui">
-        <input type="password" id="apiKeyInput" placeholder="在此輸入 Gemini API Key...">
+        <input type="password" id="apiKeyInput" placeholder="在此輸入您的 Gemini API Key...">
         <button style="width:auto; padding:5px 15px; font-size:12px; background:var(--accent);" onclick="saveKey()">確認</button>
     </div>
 
     <div class="input-section">
-        <textarea id="emailInput" placeholder="在此輸入或貼入郵件本文內容..."></textarea>
+        <textarea id="emailInput" placeholder="在此貼入長篇郵件本文..."></textarea>
         <button onclick="askGemini()">
             啟動智慧分析
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
@@ -84,17 +46,14 @@
     </div>
 
     <div id="loader">✨ Galaxy AI 正在深度解讀語義...</div>
-
     <div id="display-list"></div>
 </div>
 
 <script>
     let savedKey = sessionStorage.getItem('gemini_key');
-    
-    // 初始化狀態檢查
     if (savedKey) {
         document.getElementById('config-ui').style.display = 'none';
-        updateStatusText('READY TO ANALYZE', '#32d74b');
+        updateStatusText('READY', '#32d74b');
     }
 
     function saveKey() {
@@ -102,39 +61,33 @@
         if (key) {
             sessionStorage.setItem('gemini_key', key);
             savedKey = key;
-            document.getElementById('config-ui').style.opacity = '0.5';
-            document.getElementById('config-ui').style.pointerEvents = 'none';
-            updateStatusText('READY TO ANALYZE', '#32d74b');
-            alert('金鑰已安全載入！');
+            document.getElementById('config-ui').style.display = 'none';
+            updateStatusText('READY', '#32d74b');
         }
     }
 
     function updateStatusText(text, color) {
         const tag = document.getElementById('status-tag');
-        tag.innerText = text;
-        tag.style.color = color;
-        tag.style.borderColor = color;
+        tag.innerText = text; tag.style.color = color; tag.style.borderColor = color;
     }
 
     async function askGemini() {
-        if (!savedKey) return alert('請先在上方輸入 API 金鑰！');
+        if (!savedKey) return alert('請先輸入 API Key！');
         const text = document.getElementById('emailInput').value.trim();
         if (!text) return;
 
         const loader = document.getElementById('loader');
-        const list = document.getElementById('display-list');
         loader.style.display = 'block';
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`;
+        // --- 關鍵修正處：使用 v1 版本與正確的模型路徑 ---
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${savedKey}`;
 
-        // 設定 AI 摘要的邏輯：長摘要、抓時地、給建議
-        const prompt = `你是一位專業的萬能郵件管家。請根據以下郵件內容，產出結構化的繁體中文分析：
-        1. [緊急程度]: 判斷是"緊急"或"普通"。
-        2. [深度摘要]: 以自然親切口吻寫出約 100 字摘要，說明這封信到底在幹嘛。
-        3. [關鍵資訊]: 抓出明確的時間、地點（如果有的話）。
-        4. [行動指南]: 建議收件者下一步具體該做什麼。
-        
-        郵件內容：${text}`;
+        const prompt = `你是一位專業的萬能郵件管家。請根據以下郵件內容，產出繁體中文分析：
+        1. [優先等級]: (緊急/普通)。
+        2. [深度摘要]: 以自然、親切的助手口吻，寫出約 100 字的摘要。
+        3. [關鍵時地]: 抓出時間與地點 (若無則跳過)。
+        4. [行動指南]: 建議下一步具體該做什麼。
+        郵件：${text}`;
 
         try {
             const response = await fetch(url, {
@@ -144,32 +97,25 @@
             });
 
             const data = await response.json();
+            
+            // 如果 API 回報錯誤，直接顯示詳細訊息
             if (data.error) throw new Error(data.error.message);
 
             const aiResult = data.candidates[0].content.parts[0].text;
-            const isUrgent = aiResult.includes("緊急") || /變更|立刻|截止/.test(text);
-
+            
             loader.style.display = 'none';
             const card = document.createElement('div');
             card.className = 'result-card';
-            
             card.innerHTML = `
-                <div class="prio-label" style="color:${isUrgent ? '#ff453a' : '#32d74b'};">
-                    ● ${isUrgent ? 'URGENT PRIORITY' : 'NORMAL INFO'}
-                </div>
-                <div class="row">
-                    <span class="label">Galaxy AI 智慧分析結果</span>
-                    <div class="content">${aiResult}</div>
-                </div>
+                <span class="label">Galaxy AI 分析結果</span>
+                <div class="content">${aiResult}</div>
             `;
-            
-            list.insertBefore(card, list.firstChild);
+            document.getElementById('display-list').insertBefore(card, document.getElementById('display-list').firstChild);
             document.getElementById('emailInput').value = '';
-            if (navigator.vibrate) navigator.vibrate(isUrgent ? [80, 40, 80] : [40]);
 
         } catch (error) {
             loader.style.display = 'none';
-            alert("分析失敗：金鑰可能無效。錯誤訊息：" + error.message);
+            alert("分析失敗：\n" + error.message);
         }
     }
 </script>
